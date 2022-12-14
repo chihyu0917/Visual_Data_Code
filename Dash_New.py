@@ -12,9 +12,11 @@ colors = {
 }
 
 #資料處理以便後續畫圖的處理
-path = '/Users/siowanchoi/Desktop/專題/test.csv'
-df = pd.read_csv(path, encoding='utf-8')
+path = ['../data_source/test.csv', '../data_source/heatmap.csv', '../data_source/linechart.csv']
+df = pd.read_csv(path[0], encoding='utf-8')
 length = len(df)
+df2 = pd.read_csv(path[1])
+df3 = pd.read_csv(path[2])
 
 # RoadNameArr = [df["RoadName"][0]]
 # index = 0
@@ -120,10 +122,31 @@ AvgSpeed_fig.update_layout(
     font_color=colors['text']
 )
 
+#Heatmap
+heatmap = px.imshow(df2,
+                labels=dict(x="Time of Day", y="Day of Week", color="Productivity"),
+                y=["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                x=['Morning', 'Afternoon', 'Evening'],
+               )
+heatmap.update_layout(
+    plot_bgcolor=colors['background'],
+    paper_bgcolor=colors['background'],
+    font_color=colors['text']
+)
+
+#Line Chart
+linechart = px.line(df3)
+linechart.update_layout(
+    plot_bgcolor=colors['background'],
+    paper_bgcolor=colors['background'],
+    font_color=colors['text']
+)
+
+
 app.layout = html.Div([
     html.Div(children=[
         html.H1(children='DashBoard',style={'textAlign': 'center','color': '#111111'}),
-        html.Label('跳轉頁面'),
+        # html.Label('跳轉頁面'),
         dcc.Dropdown([
                         'Page1 動畫',
                         'Page2 互動圖表'
@@ -131,8 +154,9 @@ app.layout = html.Div([
     ]),
     html.Div(children=[dcc.Graph(id='Bubble Map',figure=map_fig)],style={'width':'40%', 'display': 'inline-block', 'flaot': 'left', 'height': '100%'}),
     html.Div(children=[dcc.Graph(id='Bar Chart',figure=carflow_fig)],style={'width': '30%' ,'display': 'inline-block', 'height': '20%'}),
-    html.Div(children=[dcc.Graph(id='Pie Chart',figure=ThreeCar_fig)],style={'width': '30%', 'display': 'inline-block', 'height': '40%'}),
-    html.Div(children=[dcc.Graph(id='Pie Chart',figure=AvgSpeed_fig)],style={'width': '100%'})
+    html.Div(children=[dcc.Graph(id="Heatmap",figure=heatmap)],style={'width': '30%', 'display': 'inline-block', 'height': '40%'}),
+    html.Div(children=[dcc.Graph(id='Line Chart',figure=linechart)],style={'width': '70%', 'display': 'inline-block', 'height': '40%'}),
+    html.Div(children=[dcc.Graph(id='Pie Chart',figure=ThreeCar_fig)],style={'width': '30%', 'display': 'inline-block', 'height': '40%'})
 ])
 
 #更新html
