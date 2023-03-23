@@ -177,6 +177,45 @@ def get_roadname(lon, lat):
             return Road
     return None
 
+#Heap Map callback function
+@app.callback( Output('Heap Map', 'figure'),
+               Input('Bubble Map', 'selectedData') )
+def draw_HeapMap(selectedData):
+    DataOfHM = pd.DataFrame(index=[], columns=[])
+    # DataOfHM = np.zeros((7, 3))
+    day = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+    if selectedData is None:
+        df_subset = df.copy()
+    else:
+        TargetRoadName = [get_roadname(point['lon'], point['lat']) for point in selectedData['points']]
+        df_subset = df[df['RoadName'].isin(TargetRoadName)]
+    
+    df_subset['InfoTime'] = pd.to_datetime(df_subset['InfoTime'], format='%Y-%m-%d %H:%M:%S')
+    df_subset['Date'] = df_subset['InfoTime'].dt.date
+    df_subset['Time'] = df_subset['InfoTime'].dt.hour.apply(time_def)
+    df_subset['Weekday'] = df_subset['InfoTime'].dt.dayofweek.apply(week_def)
+    df_subset['Total Volume'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
+    DataOfHM = pd.pivot_table(df_subset, values='Total Volume', index=['Weekday'], columns=['Time'], aggfunc=np.sum, fill_value=0)
+    
+    heatmap = px.imshow(
+                        DataOfHM,
+                        labels=dict(y="Day of Week", x="Time of Day", color="Total Volume"),
+                        x=list(DataOfHM.columns),
+                        y=list(DataOfHM.index),
+                        color_continuous_scale=["blue", "green", "yellow", "orange", "red"]
+                    )
+    
+    heatmap.update_layout(
+        plot_bgcolor=colors['background'],
+        paper_bgcolor=colors['background'],
+        font_color=colors['text'],
+        title= 'The Total Volume Of Each Week(3 Time Period)',
+        hovermode= 'closest'
+    )
+    
+    return heatmap
+
 #Pie Chart callback function
 @app.callback( Output('Pie Chart', 'figure'),
                Input('Bubble Map', 'selectedData') )
@@ -214,80 +253,19 @@ def draw_PieChart(selectedData):
     )
     return piechart
 
-#Heap Map callback function
-@app.callback( Output('Heap Map', 'figure'),
-            #    Input('Bubble Map', 'selectedData') )
-            Input('Bubble Map', 'selectedData'),
-            Input('Pie Chart', 'clickData') )
-def draw_HeapMap(selectedData, clickData):
-    DataOfHM = pd.DataFrame(index=[], columns=[])
-    # DataOfHM = np.zeros((7, 3))
-    day = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-
-    # if selectedData is None:
-    if selectedData is None and clickData is None:
-        df_subset = df.copy()
-        df_subset['Total Volume'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
-    # else:
-    elif clickData is None:
-        TargetRoadName = [get_roadname(point['lon'], point['lat']) for point in selectedData['points']]
-        df_subset = df[df['RoadName'].isin(TargetRoadName)]
-        df_subset['Total Volume'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
-    else:
-        df_subset = df.copy()
-        if clickData['points'][0]['label'] == 'BIG':
-            # df_subset['Total Volume'] = df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
-            df_subset['Total Volume'] = df_subset['BIGVOLUME']
-        elif clickData['points'][0]['label'] == 'CAR':
-            df_subset['Total Volume'] = df_subset['CARVOLUME'] 
-        elif clickData['points'][0]['label'] == 'MOTOR':
-            df_subset['Total Volume'] = df_subset['MOTORVOLUME']
-    
-    df_subset['InfoTime'] = pd.to_datetime(df_subset['InfoTime'], format='%Y-%m-%d %H:%M:%S')
-    df_subset['Date'] = df_subset['InfoTime'].dt.date
-    df_subset['Time'] = df_subset['InfoTime'].dt.hour.apply(time_def)
-    df_subset['Weekday'] = df_subset['InfoTime'].dt.dayofweek.apply(week_def)
-    # df_subset['Total Volume'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
-    DataOfHM = pd.pivot_table(df_subset, values='Total Volume', index=['Weekday'], columns=['Time'], aggfunc=np.sum, fill_value=0)
-    
-    heatmap = px.imshow(
-                        DataOfHM,
-                        labels=dict(y="Day of Week", x="Time of Day", color="Total Volume"),
-                        x=list(DataOfHM.columns),
-                        y=list(DataOfHM.index),
-                        color_continuous_scale=["blue", "green", "yellow", "orange", "red"]
-                    )
-    
-    heatmap.update_layout(
-        plot_bgcolor=colors['background'],
-        paper_bgcolor=colors['background'],
-        font_color=colors['text'],
-        title= 'The Total Volume Of Each Week(3 Time Period)',
-        hovermode= 'closest'
-    )
-    
-    return heatmap
-
-
 #Line Chart callback function
 @app.callback( Output('Line Chart', 'figure'),
-            #    Input('Bubble Map', 'selectedData') )
-            Input('Bubble Map', 'selectedData'),
-            Input('Pie Chart', 'clickData') )
-def draw_LineChart(selectedData, clickData):
+               Input('Bubble Map', 'selectedData') )
+def draw_LineChart(selectedData):
     legth_date = len(pivot_table.columns)
     
     TargetRoadName = []
-    
-    # if selectedData is None:
-    if selectedData is None and clickData is None:
+    if selectedData is None:
         df_subset = df.copy()
 
-    elif clickData is None: 
+    else: 
         TargetRoadName = [get_roadname(point['lon'], point['lat']) for point in selectedData['points']]
         df_subset = df[df['RoadName'].isin(TargetRoadName)]
-    else:
-        df_subset = df.copy()
         
 
     # agg_dict = {"Speed": np.sum, "Volume": np.sum}
@@ -300,8 +278,8 @@ def draw_LineChart(selectedData, clickData):
     pivoted_df["CAR_AVGSPEED"] = pivoted_df["CARSPEED"] / pivoted_df["CARVOLUME"]
     pivoted_df["MOTOR_AVGSPEED"] = pivoted_df["MOTORSPEED"] / pivoted_df["MOTORVOLUME"]
 
-    if clickData is None:
-        linechart = px.line(pivoted_df, x=pivoted_df.index, y=["BIG_AVGSPEED", "CAR_AVGSPEED", "MOTOR_AVGSPEED"],
+
+    linechart = px.line(pivoted_df, x=pivoted_df.index, y=["BIG_AVGSPEED", "CAR_AVGSPEED", "MOTOR_AVGSPEED"],
                         labels=dict(x="Date", y="Average Speed"),
                         markers=True,
                         color_discrete_map={
@@ -310,40 +288,6 @@ def draw_LineChart(selectedData, clickData):
                             "MOTOR_AVGSPEED": "#e5a952"
                         },
                        )
-    else:
-        if clickData['points'][0]['label'] == 'BIG':
-            linechart = px.line(pivoted_df, x=pivoted_df.index, y=["BIG_AVGSPEED"],
-                            labels=dict(x="Date", y="Average Speed"),
-                            markers=True,
-                            color_discrete_map={
-                                "BIG_AVGSPEED": "#afbc8f"
-                            },
-                        )
-        elif clickData['points'][0]['label'] == 'CAR':
-            linechart = px.line(pivoted_df, x=pivoted_df.index, y=["CAR_AVGSPEED"],
-                            labels=dict(x="Date", y="Average Speed"),
-                            markers=True,
-                            color_discrete_map={
-                                "CAR_AVGSPEED": "#e7d292"
-                            },
-                        )
-        elif clickData['points'][0]['label'] == 'MOTOR':
-            linechart = px.line(pivoted_df, x=pivoted_df.index, y=["MOTOR_AVGSPEED"],
-                            labels=dict(x="Date", y="Average Speed"),
-                            markers=True,
-                            color_discrete_map={
-                                "MOTOR_AVGSPEED": "#e5a952"
-                            },
-                        )
-    # linechart = px.line(pivoted_df, x=pivoted_df.index, y=["BIG_AVGSPEED", "CAR_AVGSPEED", "MOTOR_AVGSPEED"],
-    #                     labels=dict(x="Date", y="Average Speed"),
-    #                     markers=True,
-    #                     color_discrete_map={
-    #                         "BIG_AVGSPEED": "#afbc8f",
-    #                         "CAR_AVGSPEED": "#e7d292",
-    #                         "MOTOR_AVGSPEED": "#e5a952"
-    #                     },
-    #                    )
 
     linechart.update_layout(
         plot_bgcolor=colors['background'],
