@@ -9,5 +9,8 @@
 
 0324更正之處:
 1. 增加Pie Chart與其他四圖的互動
-	- 問題: 選取後，Bubble Map的color和label對不上
+	- 問題: 選取後，Bubble Map的color和label對不上 (已解決)
 2. 增加Line Chart與其他四圖的互動
+3. 增加Bar Chart與Bubble Map互動
+4. 資料增加從2018/01到2018/03
+	- https://drive.google.com/file/d/1SRxLPOYC-uKStkR6ICF4MRN4_lhq6PBH/view?usp=sharing
