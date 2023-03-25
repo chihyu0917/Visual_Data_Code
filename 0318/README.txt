@@ -14,3 +14,12 @@
 3. 增加Bar Chart與Bubble Map互動
 4. 資料增加從2018/01到2018/03
 	- https://drive.google.com/file/d/1SRxLPOYC-uKStkR6ICF4MRN4_lhq6PBH/view?usp=sharing
+
+0324更正之處:
+1. 更新了Dash Board的排版
+2. Mapbox的style換了更簡潔的地圖引入
+3. Mapbox和Bar Chart的分類顏色更換，以及Heapmap的顏色修改為同顏色漸變
+4. figure細調
+	- Mapbox的圖例改放在地圖左上方->地圖比例放大
+	- title的位置全部置中了
+	- title的內容有更動
