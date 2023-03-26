@@ -15,7 +15,7 @@
 4. 資料增加從2018/01到2018/03
 	- https://drive.google.com/file/d/1SRxLPOYC-uKStkR6ICF4MRN4_lhq6PBH/view?usp=sharing
 
-0324更正之處:
+0325更正之處:
 1. 更新了Dash Board的排版
 2. Mapbox的style換了更簡潔的地圖引入
 3. Mapbox和Bar Chart的分類顏色更換，以及Heapmap的顏色修改為同顏色漸變
@@ -23,3 +23,8 @@
 	- Mapbox的圖例改放在地圖左上方->地圖比例放大
 	- title的位置全部置中了
 	- title的內容有更動
+
+0326更正之處：
+1. 優化了get_roadname function
+2. 增加Bar Chart與Bubble Map外的圖的互動
+3. 調整了heatmap的y坐標 -> 改為星期的縮寫

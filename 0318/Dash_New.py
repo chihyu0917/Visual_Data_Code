@@ -11,21 +11,13 @@ import json
 def time_def(hr):
     result = -1
     result_str = ['Morning', 'Afternoon', 'Evening']
-    i = 0
-    if hr < 12: 
-        result = 0
-        # i = 0
-    elif hr < 18:
-        result = 1
-        # i = 1
-    else:
-        result = 2
-        # i = 2
-    # return result
+    if hr < 12: result = 0
+    elif hr < 18: result = 1
+    else: result = 2
     return str(result) + ' ' + result_str[result]
 
 def week_def(date):
-    weekday = ['1 Monday', '2 Tuesday', '3 Wednesday', '4 Thursday', '5 Friday', '6 Saturday', '7 Sunday']
+    weekday = ['1 Mon', '2 Tue', '3 Wed', '4 Thur', '5 Fri', '6 Sat', '7 Sun']
     return weekday[date%7]
     # return date%7
 
@@ -34,7 +26,6 @@ app = Dash(__name__)
 colors = {
     'background': '#434648',
     'fig_background': '#5F6366',
-    # 'plot_background': '#ededed',
     'plot_background': '#5F6366',
     'text': '#FFFFFF',
     'red': '#C1395E',
@@ -62,11 +53,10 @@ pivot_table = grouped.pivot_table(values='RoadTotal', index=['RoadName', 'Positi
 Total = pivot_table.sum(axis=1)
 
 # 計算各個 RoadName 的 Label 和 Color
-# interval_list = [100000, 200000, 300000, 400000]
 interval_list = [15000, 25000, 35000, 45000]
-range_str = ["< {}".format(interval_list[0])]
+range_str = ["≤ {}".format(interval_list[0])]
 range_str += ["{} to {}".format(interval_list[i]+1,interval_list[i+1]) for i in range(3)]
-range_str += ["> {}".format(interval_list[3]+1)]
+range_str += ["≥ {}".format(interval_list[3]+1)]
 bins = [0] + interval_list + [np.inf]
 Color_list = pd.cut(Total, bins=bins, labels=["BLUE","GREEN", "YELLOW", "ORANGE", "RED"]).tolist()
 
@@ -86,9 +76,17 @@ RoadInfo = pd.DataFrame({'RoadName': pivot_table.index.get_level_values('RoadNam
                         'PositionLon':pivot_table.index.get_level_values('PositionLon').tolist(),
                         'PositionLat':pivot_table.index.get_level_values('PositionLat').tolist()})
 
+# function： 取得RoadName的list
+def get_roadname(lon, lat):
+    lon = float(lon)
+    lat = float(lat)
+    df = RoadInfo.query('PositionLon == @lon and PositionLat == @lat')
+    if len(df) > 0:
+        return df['RoadName'].iloc[0]
+    else:
+        return None
 
 #---------------------------------------------Mapbox callback function---------------------------------------------
-
 @app.callback( Output('Bubble Map', 'figure'),
                Input('Line Chart', 'selectedData'),
                Input('Pie Chart', 'clickData'),
@@ -156,7 +154,6 @@ def draw_BubbleMap(selectedData, clickData, clickData2):
                                 }
     )
     map_fig.update_layout(
-        # mapbox_style='stamen-terrain',
         mapbox_style='carto-positron',
         plot_bgcolor=colors['plot_background'],
         paper_bgcolor=colors['fig_background'],
@@ -179,7 +176,6 @@ def draw_BubbleMap(selectedData, clickData, clickData2):
         hovermode='closest'
     )
     return map_fig
-
 
 #---------------------------------------------Bar Chart callback function---------------------------------------------
 @app.callback( Output('Bar Chart', 'figure'),
@@ -264,36 +260,36 @@ def draw_BarChart(selectedData, selectedData2, clickData):
     )
     return barchart
 
-#function： 取得RoadName的list
-def get_roadname(lon, lat):
-    for i in range(len(RoadInfo)):
-        if (RoadInfo["PositionLon"][i] == lon and RoadInfo["PositionLat"][i] == lat):
-            Road = RoadInfo["RoadName"][i]
-            return Road
-    return None
-
-
 #---------------------------------------------Pie Chart callback function---------------------------------------------
 @app.callback( Output('Pie Chart', 'figure'),
                Input('Bubble Map', 'selectedData'),
-               Input('Line Chart', 'selectedData') )
-def draw_PieChart(selectedData, selectedData2):
+               Input('Line Chart', 'selectedData'),
+               Input('Bar Chart', 'clickData') )
+def draw_PieChart(selectedData, selectedData2, clickData):
     EACHVOLUME = {'BIG': 0, "CAR": 0, "MOTOR": 0}
     TargetRoadName = []
-    if selectedData is None and selectedData2 is None:
+    if selectedData is None and selectedData2 is None and clickData is None: #Default
         df_subset = df.copy()
-    elif selectedData2 is None:
+    elif selectedData2 is None and clickData is None: #只有Bubble Map選取
         TargetRoadName = [get_roadname(point['lon'], point['lat']) for point in selectedData['points']]
-        df_subset = df[df['RoadName'].isin(TargetRoadName)]
-    else:
+        df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
+    elif selectedData is None and clickData is None: #只有Line Chart選取
         first = selectedData2['range']['x'][0]
         last = selectedData2['range']['x'][1]
         first = datetime.strptime(first, '%Y-%m-%d %H:%M:%S.%f')
         last = datetime.strptime(last, '%Y-%m-%d %H:%M:%S.%f')
         df_subset = df.copy()
         df_subset['Date'] = pd.to_datetime(df_subset['Date'])
-        df_subset = df[(df_subset['Date'] >= first) & (df_subset['Date'] <= last)]
-    
+        df_subset = df_subset[(df_subset['Date'] >= first) & (df_subset['Date'] <= last)]
+    elif selectedData is None and selectedData2 is None: #只有Bar Chart點擊
+        label = clickData['points'][0]['label']
+        df_subset = DataOfBM_df.copy()
+        df_subset = df_subset[df_subset['Color'] == label]
+        TargetRoadName = [get_roadname(point['PositionLon'], point['PositionLat']) for _, point in df_subset.iterrows()]
+        df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
+    else: #先不考慮交集
+        df_subset = df.copy()
+
     EACHVOLUME['BIG'] = df_subset["BIGVOLUME"].sum()
     EACHVOLUME['CAR'] = df_subset["CARVOLUME"].sum()
     EACHVOLUME['MOTOR'] = df_subset["MOTORVOLUME"].sum()
@@ -323,36 +319,23 @@ def draw_PieChart(selectedData, selectedData2):
     )
     return piechart
 
-
 #---------------------------------------------Heat Map callback function---------------------------------------------
 @app.callback( Output('Heap Map', 'figure'),
             Input('Bubble Map', 'selectedData'),
             Input('Line Chart', 'selectedData'),
-            Input('Pie Chart', 'clickData') )
-def draw_HeapMap(selectedData, selectedData2, clickData):
+            Input('Pie Chart', 'clickData'),
+            Input('Bar Chart', 'clickData') )
+def draw_HeapMap(selectedData, selectedData2, clickData, clickData2):
     DataOfHM = pd.DataFrame(index=[], columns=[])
-    # DataOfHM = np.zeros((7, 3))
-    day = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-    # if selectedData is None:
-    if selectedData is None and selectedData2 is None and clickData is None:
+    if selectedData is None and selectedData2 is None and clickData is None and clickData2 is None: #Default
         df_subset = df.copy()
         df_subset['Total Volume'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
-    # else:
-    elif clickData is None and selectedData2 is None:
+    elif selectedData2 is None and clickData is None and clickData2 is None: # 只有Bubble Map選取
         TargetRoadName = [get_roadname(point['lon'], point['lat']) for point in selectedData['points']]
-        df_subset = df[df['RoadName'].isin(TargetRoadName)]
+        df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
         df_subset['Total Volume'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
-    elif selectedData2 is None:
-        df_subset = df.copy()
-        if clickData['points'][0]['label'] == 'BIG':
-            # df_subset['Total Volume'] = df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
-            df_subset['Total Volume'] = df_subset['BIGVOLUME']
-        elif clickData['points'][0]['label'] == 'CAR':
-            df_subset['Total Volume'] = df_subset['CARVOLUME'] 
-        elif clickData['points'][0]['label'] == 'MOTOR':
-            df_subset['Total Volume'] = df_subset['MOTORVOLUME']
-    else:
+    elif selectedData is None and clickData is None and clickData2 is None: # 只有Line Chart選取
         first = selectedData2['range']['x'][0]
         last = selectedData2['range']['x'][1]
         first = datetime.strptime(first, '%Y-%m-%d %H:%M:%S.%f')
@@ -361,21 +344,37 @@ def draw_HeapMap(selectedData, selectedData2, clickData):
         df_subset['Date'] = pd.to_datetime(df_subset['Date'])
         df_subset = df[(df_subset['Date'] >= first) & (df_subset['Date'] <= last)]
         df_subset['Total Volume'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
+    elif selectedData is None and selectedData2 is None and clickData2 is None: # 只有Pie Chart點擊
+        df_subset = df.copy()
+        if clickData['points'][0]['label'] == 'BIG':
+            df_subset['Total Volume'] = df_subset['BIGVOLUME']
+        elif clickData['points'][0]['label'] == 'CAR':
+            df_subset['Total Volume'] = df_subset['CARVOLUME'] 
+        elif clickData['points'][0]['label'] == 'MOTOR':
+            df_subset['Total Volume'] = df_subset['MOTORVOLUME']
+    elif selectedData is None and selectedData2 is None and clickData is None: # 只有Bar Chart點擊
+        label = clickData2['points'][0]['label']
+        df_subset = DataOfBM_df.copy()
+        df_subset = df_subset[df_subset['Color'] == label]
+        TargetRoadName = [get_roadname(point['PositionLon'], point['PositionLat']) for _, point in df_subset.iterrows()]
+        df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
+        df_subset['Total Volume'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
+    else : #先不考慮交集
+        df_subset = df.copy()
+        df_subset['Total Volume'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
     
     df_subset['InfoTime'] = pd.to_datetime(df_subset['InfoTime'], format='%Y-%m-%d %H:%M:%S')
     df_subset['Date'] = df_subset['InfoTime'].dt.date
     df_subset['Time'] = df_subset['InfoTime'].dt.hour.apply(time_def)
     df_subset['Weekday'] = df_subset['InfoTime'].dt.dayofweek.apply(week_def)
     DataOfHM = pd.pivot_table(df_subset, values='Total Volume', index=['Weekday'], columns=['Time'], aggfunc=np.sum, fill_value=0)
-    
     heatmap = px.imshow(
                         DataOfHM,
                         labels=dict(y="Day of Week", x="Time of Day", color="Total Volume"),
                         x=list(DataOfHM.columns),
                         y=list(DataOfHM.index),
                         color_continuous_scale='Pinkyl'
-                        # color_continuous_scale=[colors['blue'], colors['green'], colors['yellow'], colors['orange'], colors['red']]
-                    )
+    )
     
     heatmap.update_layout(
         plot_bgcolor=colors['plot_background'],
@@ -388,27 +387,31 @@ def draw_HeapMap(selectedData, selectedData2, clickData):
         },
         hovermode= 'closest'
     )
-    
     return heatmap
-
-
 
 #---------------------------------------------Line Chart callback function---------------------------------------------
 @app.callback( Output('Line Chart', 'figure'),
             Input('Bubble Map', 'selectedData'),
-            Input('Pie Chart', 'clickData') )
-def draw_LineChart(selectedData, clickData):
+            Input('Pie Chart', 'clickData'),
+            Input('Bar Chart', 'clickData') )
+def draw_LineChart(selectedData, clickData, clickData2):
     legth_date = len(pivot_table.columns)
     
     TargetRoadName = []
-    
     # if selectedData is None:
-    if selectedData is None and clickData is None:
+    if selectedData is None and clickData is None and clickData2 is None:
         df_subset = df.copy()
-
-    elif clickData is None: 
+    elif clickData is None and clickData2 is None: # 只有Bubble Map選取
         TargetRoadName = [get_roadname(point['lon'], point['lat']) for point in selectedData['points']]
-        df_subset = df[df['RoadName'].isin(TargetRoadName)]
+        df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
+    elif selectedData is None and clickData2 is None: # 只有Pie Chart點擊
+        df_subset = df.copy()
+    elif selectedData is None and clickData is None: # 只有Bar Chart點擊
+        label = clickData2['points'][0]['label']
+        df_subset = DataOfBM_df.copy()
+        df_subset = df_subset[df_subset['Color'] == label]
+        TargetRoadName = [get_roadname(point['PositionLon'], point['PositionLat']) for _, point in df_subset.iterrows()]
+        df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
     else:
         df_subset = df.copy()
         
@@ -422,7 +425,7 @@ def draw_LineChart(selectedData, clickData):
     pivoted_df["CAR_AVGSPEED"] = pivoted_df["CARSPEED"] / pivoted_df["CARVOLUME"]
     pivoted_df["MOTOR_AVGSPEED"] = pivoted_df["MOTORSPEED"] / pivoted_df["MOTORVOLUME"]
 
-    if clickData is None:
+    if clickData is None: # Bubble Map選取和Bar Chart點擊, 顯示選取內容中包含的路段的平均速度
         linechart = px.line(pivoted_df, x=pivoted_df.index, y=["BIG_AVGSPEED", "CAR_AVGSPEED", "MOTOR_AVGSPEED"],
                         labels=dict(x="Date", y="Average Speed"),
                         markers=True,
@@ -432,7 +435,7 @@ def draw_LineChart(selectedData, clickData):
                             "MOTOR_AVGSPEED": colors['MOTOR']
                         },
                        )
-    else:
+    else: # Pie Chart點擊, 顯示該車種的平均速度
         if clickData['points'][0]['label'] == 'BIG':
             linechart = px.line(pivoted_df, x=pivoted_df.index, y=["BIG_AVGSPEED"],
                             labels=dict(x="Date", y="Average Speed"),
@@ -472,7 +475,6 @@ def draw_LineChart(selectedData, clickData):
     )
     return linechart
 
-
 #---------------------------------------------Dash Board 版面---------------------------------------------
 app.layout = html.Div(
     style={'height': '100%', 'width': '100%', 'backgroundColor': colors['background'], 'fontFamily': 'Times New Roman, sans-serif', 'padding': '2%'},
@@ -510,9 +512,6 @@ app.layout = html.Div(
         )
     ]
 )
-
-
-
 
 #---------------------------------------------html update---------------------------------------------
 if __name__ == '__main__':
