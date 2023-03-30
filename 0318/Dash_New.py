@@ -39,7 +39,8 @@ colors = {
 }
 
 # 資料處理以便後續畫圖的處理
-path = '/Users/siowanchoi/Desktop/專題/merged.csv'
+# path = '/Users/siowanchoi/Desktop/專題/merged.csv'
+path = '/Users/siowanchoi/Desktop/專題/IntegrateData.csv'
 df = pd.read_csv(path, encoding='utf-8')
 
 #處理pivot_table，內容為路段資訊及每日總量
@@ -58,7 +59,8 @@ range_str = ["≤ {}".format(interval_list[0])]
 range_str += ["{} to {}".format(interval_list[i]+1,interval_list[i+1]) for i in range(3)]
 range_str += ["≥ {}".format(interval_list[3]+1)]
 bins = [0] + interval_list + [np.inf]
-Color_list = pd.cut(Total, bins=bins, labels=["BLUE","GREEN", "YELLOW", "ORANGE", "RED"]).tolist()
+# bins= [0, 15000, 25000, 35000, 45000, inf]
+Color_list = pd.cut(Total, bins=bins, labels=["BLUE","GREEN", "YELLOW", "ORANGE", "RED"], include_lowest=True).tolist()
 
 ColorLabel_list = pd.DataFrame({'RoadName': pivot_table.index.get_level_values('RoadName').tolist(),
                                 'PositionLon':pivot_table.index.get_level_values('PositionLon').tolist(),
@@ -143,7 +145,7 @@ def draw_BubbleMap(selectedData, clickData, clickData2):
                                 color=DataOfBM['Range'],
                                 hover_name=DataOfBM['RoadName'],
                                 size=DataOfBM['Total_Vol'],
-                                size_max=15,
+                                size_max=20,
                                 zoom=10,
                                 color_discrete_map={
                                     range_str[0]: colors['blue'],

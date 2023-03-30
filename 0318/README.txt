@@ -28,3 +28,10 @@
 1. 優化了get_roadname function
 2. 增加Bar Chart與Bubble Map外的圖的互動
 3. 調整了heatmap的y坐標 -> 改為星期的縮寫
+
+0329更正之處：
+1. 2020/01到2020/03（各80萬）
+	- https://drive.google.com/file/d/1cqsBgR9wKeiDLwFQGCYRayqPAMv9f9tm/view?usp=sharing
+	- 該資料的Heatmap資料較2018的資料有更完整
+2. 改資料後發現Color_list出現nan值，導致Bar Chart無法正確顯示，解決方法如下：
+	- pd.cut內的include_lowest改為true
