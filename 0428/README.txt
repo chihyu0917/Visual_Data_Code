@@ -14,4 +14,7 @@
 3. 更改寫法: 
 	- 原Bubble Map的selectedData用路名選擇造成部分點不在圈選範圍內，改用邊界再次檢查
 	- 原Bubble Map的Bar Chart與Bubble Map上不同步，所以用interval找出在範圍內的RoadTotal值
-	
+
+0522更正之處:
+1. 把Text figure的funcion合併
+2. 簡化了LineChart的部份寫化：line 1188 - 1201

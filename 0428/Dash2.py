@@ -40,11 +40,21 @@ colors = {
 }
 
 # 資料處理以便後續畫圖的處理
+'''Windows 11'''
+'''
 # path = '../data_source/IntegrateData.csv'
 path = "..\data_source\IntegrateData.csv"
 df = pd.read_csv(path, encoding='utf-8')
 with open('../data_source/taipei_districts.json', 'r', encoding='utf-8') as f:
     geojson_data = json.load(f)
+'''
+
+'''mac'''
+path = '/Users/siowanchoi/Desktop/專題/IntegrateData.csv'
+df = pd.read_csv(path, encoding='utf-8')
+with open('/Users/siowanchoi/Desktop/專題/taipei_districts.json', 'r', encoding='utf-8') as f:
+    geojson_data = json.load(f)
+
 
 #處理pivot_table，內容為路段資訊及每日總量
 df['InfoData'] = pd.to_datetime(df['InfoData'], format='%Y-%m-%d %H:%M:%S')
@@ -100,7 +110,6 @@ def get_roadname(lon, lat):
 def draw_BubbleMap(selectedData, clickData, clickData2, selectedData2):
     DataOfBM = DataOfBM_df.copy()
     df_subset = df.copy()
-    # if selectedData is None and clickData is None and clickData2 is None: #Default
     if selectedData is None and clickData is None and clickData2 is None and selectedData2 is None: #Default
         df_subset = df.copy()
         df_subset['RoadTotal'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
@@ -1095,9 +1104,7 @@ def draw_HeapMap(selectedData, selectedData2, clickData, clickData2):
             Input('Bar Chart', 'clickData'),
             Input('Line Chart', 'selectedData'))
 def draw_LineChart(selectedData, clickData, clickData2, selectedData2):
-    
     TargetRoadName = []
-    # if selectedData is None and clickData is None and clickData2 is None: # Default
     if selectedData is None and clickData is None and clickData2 is None and selectedData2 is None: # Default
         df_subset = df.copy()
     elif selectedData is not None and clickData2 is not None and selectedData2 is not None and selectedData2['points'] != []: # Bubble Map and Bar Chart and Line Chart
@@ -1122,7 +1129,7 @@ def draw_LineChart(selectedData, clickData, clickData2, selectedData2):
         df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
         TargetRoadName2 = [get_roadname(point['lon'], point['lat']) for point in selectedData['points']]
         df_subset = df_subset[df_subset['RoadName'].isin(TargetRoadName2)].copy()
-    elif selectedData is not None and selectedData2 is not None and selectedData2['points'] != []: # Bubble Map and Line Chart
+    elif selectedData is not None and selectedData2 is not None and selectedData2['points']: # Bubble Map and Line Chart
         TargetRoadName = [get_roadname(point['lon'], point['lat']) for point in selectedData['points']]
         df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
         first = selectedData2['range']['x'][0]
@@ -1131,7 +1138,7 @@ def draw_LineChart(selectedData, clickData, clickData2, selectedData2):
         last = datetime.strptime(last, '%Y-%m-%d %H:%M:%S.%f')
         df_subset['Date'] = pd.to_datetime(df_subset['Date'])
         df_subset = df_subset[(df_subset['Date'] >= first) & (df_subset['Date'] <= last)]
-    elif clickData2 is not None and selectedData2 is not None and selectedData2['points'] != []: # Bar Chart and Line Chart
+    elif clickData2 is not None and selectedData2 is not None and selectedData2['points']: # Bar Chart and Line Chart
         label = clickData2['points'][0]['label']
         df_subset = DataOfBM_df.copy()
         df_subset = df_subset[df_subset['Color'] == label]
@@ -1154,8 +1161,7 @@ def draw_LineChart(selectedData, clickData, clickData2, selectedData2):
         df_subset = df_subset[df_subset['Color'] == label]
         TargetRoadName = [get_roadname(point['PositionLon'], point['PositionLat']) for _, point in df_subset.iterrows()]
         df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
-    elif selectedData2 is not None and selectedData2['points'] != []: # Line Chart選擇非空，因為Line Chart會更新兩次
-        # print(selectedData2)
+    elif selectedData2 is not None and selectedData2['points']: # Line Chart選擇非空，因為Line Chart會更新兩次
         first = selectedData2['range']['x'][0]
         last = selectedData2['range']['x'][1]
         first = datetime.strptime(first, '%Y-%m-%d %H:%M:%S.%f')
@@ -1163,10 +1169,10 @@ def draw_LineChart(selectedData, clickData, clickData2, selectedData2):
         df_subset = df.copy()
         df_subset['Date'] = pd.to_datetime(df_subset['Date'])
         df_subset = df_subset[(df_subset['Date'] >= first) & (df_subset['Date'] <= last)]
+        print("OK")
     else:
         df_subset = df.copy()
-        
-    
+
     df_subset['BIGSPEED'] = df_subset['BIGSPEED'] * df_subset['BIGVOLUME']
     df_subset['CARSPEED'] = df_subset['CARSPEED'] * df_subset['CARVOLUME']
     df_subset['MOTORSPEED'] = df_subset['MOTORSPEED'] * df_subset['MOTORVOLUME']
@@ -1181,33 +1187,20 @@ def draw_LineChart(selectedData, clickData, clickData2, selectedData2):
 
     if clickData is not None: # Pie Chart
         if clickData['points'][0]['label'] == 'BIG':
-            linechart = px.line(pivoted_df, x=pivoted_df.index, y=["BIG"],
-                            labels=dict(x="Date", y="Average Speed"),
-                            markers=True,
-                            color_discrete_map={
-                                "BIG": colors['BIG']
-                            },
-                        )
+            data = 'BIG'
         elif clickData['points'][0]['label'] == 'CAR':
-            linechart = px.line(pivoted_df, x=pivoted_df.index, y=["CAR"],
-                            labels=dict(x="Date", y="Average Speed"),
-                            markers=True,
-                            color_discrete_map={
-                                "CAR": colors['CAR']
-                            },
-                        )
+            data = 'CAR'
         elif clickData['points'][0]['label'] == 'MOTOR':
-            linechart = px.line(pivoted_df, x=pivoted_df.index, y=["MOTOR"],
+            data = 'MOTOR'
+        linechart = px.line(pivoted_df, x=pivoted_df.index, y=[data],
                             labels=dict(x="Date", y="Average Speed"),
                             markers=True,
                             color_discrete_map={
-                                "MOTOR": colors['MOTOR']
+                                data: colors[data]
                             },
                         )
     # if clickData is None: # Bubble Map選取和Bar Chart點擊, 顯示選取內容中包含的路段的平均速度
     else:
-    # elif selectedData is not None or clickData2 is not None or selectedData2 is not None: # Bubble Map or Bar Chart or Line Chart
-        # linechart = px.line(pivoted_df, x=pivoted_df.index, y=["BIG_AVGSPEED", "CAR_AVGSPEED", "MOTOR_AVGSPEED"],
         linechart = px.line(pivoted_df, x=pivoted_df.index, y=["BIG", "CAR", "MOTOR"],
                         labels=dict(x="Date", y="Average Speed"),
                         markers=True,
@@ -1231,13 +1224,36 @@ def draw_LineChart(selectedData, clickData, clickData2, selectedData2):
         hovermode= 'closest'
     )
     return linechart
-#---------------------------------------------Text 1 callback function---------------------------------------------
+
+#---------------------------------------------Text callback function---------------------------------------------
+def get_text_fig(data, title):
+    fig = go.Figure()
+    fig.add_annotation(
+        text=data,
+        showarrow=False,
+        font=dict(size=27)
+    )
+    fig.update_layout(
+        plot_bgcolor=colors['plot_background'],
+        paper_bgcolor=colors['fig_background'],
+        font_color=colors['text'],
+        title={
+            'text': title,
+        },
+        margin=dict(l=20, r=20, t=50, b=20),
+        hovermode='closest',
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
+    )
+    return fig
+
 @app.callback(Output('Text 1', 'figure'),
+            Output('Text 2', 'figure'),
             Input('Bubble Map', 'selectedData'),
             Input('Pie Chart', 'clickData'),
             Input('Bar Chart', 'clickData'),
             Input('Line Chart', 'selectedData'))
-def draw_Text1(selectedData, clickData, clickData2, selectedData2):
+def draw_Text2(selectedData, clickData, clickData2, selectedData2):
     df_subset = df.copy()
     if clickData2 is not None: # Bar Chart
         label = clickData2['points'][0]['label']
@@ -1263,6 +1279,7 @@ def draw_Text1(selectedData, clickData, clickData2, selectedData2):
         elif clickData['points'][0]['label'] == 'MOTOR':
             df_subset['RoadTotal'] = df_subset['MOTORVOLUME']
 
+    # get the total volume of the selected road
     Total_Volume = df_subset['RoadTotal'].sum()
     Total_Volume = int(Total_Volume)
     if Total_Volume >= 1000000:
@@ -1274,59 +1291,7 @@ def draw_Text1(selectedData, clickData, clickData2, selectedData2):
     else:
         Total_Volume = str(Total_Volume)
 
-    text1 = go.Figure()
-    text1.add_annotation(
-        text=Total_Volume,
-        # align='center',
-        showarrow=False,
-        font=dict(size=27)
-    )
-    text1.update_layout(
-        plot_bgcolor=colors['plot_background'],
-        paper_bgcolor=colors['fig_background'],
-        font_color=colors['text'],
-        title={
-            'text': 'Total Volume',
-            # 'font': {'size': 20}
-        },
-        margin=dict(l=20, r=20, t=50, b=20),
-        hovermode='closest',
-        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
-    )
-    return text1
-#---------------------------------------------Text 2 callback function---------------------------------------------
-@app.callback(Output('Text 2', 'figure'),
-            Input('Bubble Map', 'selectedData'),
-            Input('Pie Chart', 'clickData'),
-            Input('Bar Chart', 'clickData'),
-            Input('Line Chart', 'selectedData'))
-def draw_Text2(selectedData, clickData, clickData2, selectedData2):
-    df_subset = df.copy()
-    if clickData2 is not None: # Bar Chart
-        label = clickData2['points'][0]['label']
-        df_subset = DataOfBM_df.copy()
-        df_subset = df_subset[df_subset['Color'] == label]
-        TargetRoadName = [get_roadname(point['PositionLon'], point['PositionLat']) for _, point in df_subset.iterrows()]
-        df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
-    if selectedData is not None: # Bubble Map
-        TargetRoadName = [get_roadname(point['lon'], point['lat']) for point in selectedData['points']]
-        df_subset = df_subset[df_subset['RoadName'].isin(TargetRoadName)].copy()
-    if selectedData2 is not None and selectedData2['points'] != []: # Line Chart
-        first = selectedData2['range']['x'][0]
-        last = selectedData2['range']['x'][1]
-        first = datetime.strptime(first, '%Y-%m-%d %H:%M:%S.%f')
-        last = datetime.strptime(last, '%Y-%m-%d %H:%M:%S.%f')
-        df_subset['Date'] = pd.to_datetime(df_subset['Date'])
-        df_subset = df_subset[(df_subset['Date'] >= first) & (df_subset['Date'] <= last)]
-    # if clickData is not None: # Pie Chart
-    #     if clickData['points'][0]['label'] == 'BIG':
-    #         df_subset['RoadTotal'] = df_subset['BIGVOLUME']
-    #     elif clickData['points'][0]['label'] == 'CAR':
-    #         df_subset['RoadTotal'] = df_subset['CARVOLUME']
-    #     elif clickData['points'][0]['label'] == 'MOTOR':
-    #         df_subset['RoadTotal'] = df_subset['MOTORVOLUME']
-
+    # get the avg speed of the selected road
     Average_Speed = df_subset['AVGSPEED'].mean()
     Average_Speed = int(Average_Speed)
     if Average_Speed >= 1000:
@@ -1335,27 +1300,10 @@ def draw_Text2(selectedData, clickData, clickData2, selectedData2):
     else:
         Average_Speed = str(Average_Speed)
 
-    text2 = go.Figure()
-    text2.add_annotation(
-        text=Average_Speed,
-        # align='center',
-        showarrow=False,
-        font=dict(size=27)
-    )
-    text2.update_layout(
-        plot_bgcolor=colors['plot_background'],
-        paper_bgcolor=colors['fig_background'],
-        font_color=colors['text'],
-        title={
-            'text': 'Average Speed',
-            # 'font': {'size': 20}
-        },
-        margin=dict(l=20, r=20, t=50, b=20),
-        hovermode='closest',
-        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
-    )
-    return text2
+    return [
+        get_text_fig(Total_Volume, 'Total Volume'),
+        get_text_fig(Average_Speed, 'Average Speed')
+    ]
 
 #---------------------------------------------Dash Board 版面---------------------------------------------
 app.layout = html.Div(
