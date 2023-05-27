@@ -18,3 +18,9 @@
 0522更正之處:
 1. 把Text figure的funcion合併
 2. 簡化了LineChart的部份寫化：line 1188 - 1201
+
+0527:
+1. 使用GitHub和render.com架設serve：
+	https://dashboard-0xmj.onrender.com/
+2. 嘗試用git lfs上傳size大於25MB的IntegrateData.csv，成功上傳到Github上
+3. 因為render.com免費版只有512MB, .1CPU，故無法運行整個IntegrateData.csv，因此改用前5萬筆資料可以成功deploy
