@@ -1,13 +1,12 @@
-from dash import Dash, html, dcc
+from dash import Dash, html, dcc, Input, Output
 import csv
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import plotly.graph_objects as go
-from dash.dependencies import Input, Output
 from datetime import datetime
 import json
 from shapely.geometry import Polygon, Point
+
 
 # function Definition
 def time_def(hr):
@@ -282,8 +281,8 @@ def draw_BubbleMap(selectedData, clickData, clickData2, selectedData2):
 def draw_ChoroplethMap(selectedData, clickData, selectedData2, clickData2):
     # if selectedData is None and clickData is None: #Default
     if selectedData is None and clickData is None and selectedData2 is None and clickData2 is None: # Default
-        # df_subset = df.copy()
-        df_subset = df.head(30000)
+        df_subset = df.copy()
+        # df_subset = df.head(30000)
     elif selectedData is not None and clickData is not None and selectedData2 is not None and clickData2 is not None and selectedData['points'] != []: # All
         label = clickData2['points'][0]['label']
         df_subset = DataOfBM_df.copy()
@@ -554,7 +553,6 @@ def draw_BarChart(selectedData, selectedData2, clickData, clickData2):
         last = datetime.strptime(last, '%Y-%m-%d %H:%M:%S.%f')
         df_subset['Date'] = pd.to_datetime(df_subset['Date'])
         df_subset = df_subset[(df_subset['Date'] >= first) & (df_subset['Date'] <= last)]
-        # df_subset['RoadTotal'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
     elif selectedData is not None and clickData is not None and clickData2 is not None: # Bubble Map and Pie Chart and Bar Chart
         label = clickData2['points'][0]['label']
         df_subset = DataOfBM_df.copy()
@@ -569,24 +567,6 @@ def draw_BarChart(selectedData, selectedData2, clickData, clickData2):
             df_subset['RoadTotal'] = df_subset['CARVOLUME']
         elif clickData['points'][0]['label'] == 'MOTOR':
             df_subset['RoadTotal'] = df_subset['MOTORVOLUME']
-    # elif clickData is not None and selectedData2 is not None and clickData2 is not None and selectedData2['points'] != []: # Pie Chart and Line Chart and Bar Chart不行
-    #     label = clickData2['points'][0]['label']
-    #     df_subset = DataOfBM_df.copy()
-    #     df_subset = df_subset[df_subset['Color'] == label]
-    #     TargetRoadName = [get_roadname(point['PositionLon'], point['PositionLat']) for _, point in df_subset.iterrows()]
-    #     df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
-    #     first = selectedData2['range']['x'][0]
-    #     last = selectedData2['range']['x'][1]
-    #     first = datetime.strptime(first, '%Y-%m-%d %H:%M:%S.%f')
-    #     last = datetime.strptime(last, '%Y-%m-%d %H:%M:%S.%f')
-    #     df_subset['Date'] = pd.to_datetime(df_subset['Date'])
-    #     df_subset = df[(df_subset['Date'] >= first) & (df_subset['Date'] <= last)]
-    #     if clickData['points'][0]['label'] == 'BIG':
-    #         df_subset['RoadTotal'] = df_subset['BIGVOLUME']
-    #     elif clickData['points'][0]['label'] == 'CAR':
-    #         df_subset['RoadTotal'] = df_subset['CARVOLUME'] 
-    #     elif clickData['points'][0]['label'] == 'MOTOR':
-    #             df_subset['RoadTotal'] = df_subset['MOTORVOLUME']
     elif selectedData is not None and selectedData2 is not None and clickData is not None and selectedData2['points'] != []: # Bubble Map and Line Chart and Pie Chart, Line Chart放最後
         TargetRoadName = [get_roadname(point['lon'], point['lat']) for point in selectedData['points']]
         df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
@@ -603,7 +583,6 @@ def draw_BarChart(selectedData, selectedData2, clickData, clickData2):
         elif clickData['points'][0]['label'] == 'MOTOR':
             df_subset['RoadTotal'] = df_subset['MOTORVOLUME']
     elif selectedData is not None and selectedData2 is not None and selectedData2['points'] != []: # Bubble Map and Line Chart
-        # print(selectedData)
         TargetRoadName = [get_roadname(point['lon'], point['lat']) for point in selectedData['points']]
         df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
         first = selectedData2['range']['x'][0]
@@ -612,7 +591,6 @@ def draw_BarChart(selectedData, selectedData2, clickData, clickData2):
         last = datetime.strptime(last, '%Y-%m-%d %H:%M:%S.%f')
         df_subset['Date'] = pd.to_datetime(df_subset['Date'])
         df_subset = df_subset[(df_subset['Date'] >= first) & (df_subset['Date'] <= last)]
-        # df_subset['RoadTotal'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
     elif clickData is not None and selectedData2 is not None and selectedData2['points'] != []: # Pie Chart and Line Chart
             df_subset = df.copy()
             first = selectedData2['range']['x'][0]
@@ -668,7 +646,6 @@ def draw_BarChart(selectedData, selectedData2, clickData, clickData2):
         last = datetime.strptime(last, '%Y-%m-%d %H:%M:%S.%f')
         df_subset['Date'] = pd.to_datetime(df_subset['Date'])
         df_subset = df_subset[(df_subset['Date'] >= first) & (df_subset['Date'] <= last)]
-        # df_subset['RoadTotal'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
     elif selectedData is not None: # Bubble Map
         marker_sizes = [p["marker.size"] for p in selectedData["points"]]
         for size in marker_sizes:
@@ -699,7 +676,6 @@ def draw_BarChart(selectedData, selectedData2, clickData, clickData2):
             df_subset = df.copy()
             df_subset['Date'] = pd.to_datetime(df_subset['Date'])
             df_subset = df[(df_subset['Date'] >= first) & (df_subset['Date'] <= last)]
-            # df_subset['RoadTotal'] = df_subset['BIGVOLUME'] + df_subset['CARVOLUME'] + df_subset['MOTORVOLUME']
     elif clickData2 is not None: # Bar Chart
         label = clickData2['points'][0]['label']
         df_subset = DataOfBM_df.copy()
@@ -709,7 +685,6 @@ def draw_BarChart(selectedData, selectedData2, clickData, clickData2):
     else:
         df_subset = df.copy()
 
-    # if clickData is not None or selectedData2 is not None: # Pie Chart or Line Chart
     if clickData is not None or selectedData2 is not None or clickData2 is not None: # Pie Chart or Line Chart or Bar Chart
         grouped = df_subset.groupby(['RoadName', 'Date', 'PositionLon', 'PositionLat'])['RoadTotal'].sum().reset_index()
         pivot_table = grouped.pivot_table(values='RoadTotal', index=['RoadName', 'PositionLon', 'PositionLat'], columns='Date', fill_value=0)
@@ -767,7 +742,6 @@ def draw_PieChart(selectedData, selectedData2, clickData, clickData2):
     EACHVOLUME = {'BIG': 0, "CAR": 0, "MOTOR": 0}
     TargetRoadName = []
     if selectedData is None and selectedData2 is None and clickData is None and clickData2 is None: # Default
-    # if selectedData is None and selectedData2 is None and clickData is None: #Default
         df_subset = df.copy()
     elif selectedData is not None and selectedData2 is not None and clickData is not None and selectedData2['points'] != []: # Bubble Map and Line Chart and Bar Chart, Line Chart放最後
         label = clickData['points'][0]['label']
@@ -877,7 +851,6 @@ def draw_PieChart(selectedData, selectedData2, clickData, clickData2):
             Input('Line Chart', 'selectedData'),
             Input('Pie Chart', 'clickData'),
             Input('Bar Chart', 'clickData'))
-            # Input('Choropleth Map', 'clickData') )
 def draw_HeapMap(selectedData, selectedData2, clickData, clickData2):
     DataOfHM = pd.DataFrame(index=[], columns=[])
 
@@ -1040,7 +1013,6 @@ def draw_HeapMap(selectedData, selectedData2, clickData, clickData2):
     elif selectedData2 is not None and selectedData2['points'] != []: # Line Chart
         first = selectedData2['range']['x'][0]
         last = selectedData2['range']['x'][1]
-        # print(selectedData2)
         first = datetime.strptime(first, '%Y-%m-%d %H:%M:%S.%f')
         last = datetime.strptime(last, '%Y-%m-%d %H:%M:%S.%f')
         df_subset = df.copy()
@@ -1070,10 +1042,7 @@ def draw_HeapMap(selectedData, selectedData2, clickData, clickData2):
     df_subset['Date'] = df_subset['InfoTime'].dt.date
     df_subset['Time'] = df_subset['InfoTime'].dt.hour.apply(time_def)
     df_subset['Weekday'] = df_subset['InfoTime'].dt.dayofweek.apply(week_def)
-    # df_subset.loc[:, 'InfoTime'] = pd.to_datetime(df_subset['InfoTime'], format='%Y-%m-%d %H:%M:%S')
-    # df_subset.loc[:, 'Date'] = df_subset['InfoTime'].dt.date
-    # df_subset.loc[:, 'Time'] = df_subset['InfoTime'].dt.hour.apply(time_def)
-    # df_subset.loc[:, 'Weekday'] = df_subset['InfoTime'].dt.dayofweek.apply(week_def)
+
 
     DataOfHM = pd.pivot_table(df_subset, values='Total Volume', index=['Weekday'], columns=['Time'], aggfunc=np.sum, fill_value=0)
     heatmap = px.imshow(
@@ -1153,8 +1122,6 @@ def draw_LineChart(selectedData, clickData, clickData2, selectedData2):
     elif selectedData is not None: # Bubble Map
         TargetRoadName = [get_roadname(point['lon'], point['lat']) for point in selectedData['points']]
         df_subset = df[df['RoadName'].isin(TargetRoadName)].copy()
-    # elif clickData is not None: # Pie Chart
-    #     df_subset = df.copy()
     elif clickData2 is not None: # Bar Chart
         label = clickData2['points'][0]['label']
         df_subset = DataOfBM_df.copy()
@@ -1178,9 +1145,7 @@ def draw_LineChart(selectedData, clickData, clickData2, selectedData2):
     df_subset['MOTORSPEED'] = df_subset['MOTORSPEED'] * df_subset['MOTORVOLUME']
     pivoted_df = pd.pivot_table(df_subset, values=["BIGSPEED", "CARSPEED", "MOTORSPEED", "BIGVOLUME", "CARVOLUME", "MOTORVOLUME"],
                                  index=["Date"], aggfunc=np.sum, fill_value=0)
-    # pivoted_df["BIG_AVGSPEED"] = pivoted_df["BIGSPEED"] / pivoted_df["BIGVOLUME"]
-    # pivoted_df["CAR_AVGSPEED"] = pivoted_df["CARSPEED"] / pivoted_df["CARVOLUME"]
-    # pivoted_df["MOTOR_AVGSPEED"] = pivoted_df["MOTORSPEED"] / pivoted_df["MOTORVOLUME"]
+
     pivoted_df["BIG"] = pivoted_df["BIGSPEED"] / pivoted_df["BIGVOLUME"]
     pivoted_df["CAR"] = pivoted_df["CARSPEED"] / pivoted_df["CARVOLUME"]
     pivoted_df["MOTOR"] = pivoted_df["MOTORSPEED"] / pivoted_df["MOTORVOLUME"]
@@ -1199,7 +1164,6 @@ def draw_LineChart(selectedData, clickData, clickData2, selectedData2):
                                 data: colors[data]
                             },
                         )
-    # if clickData is None: # Bubble Map選取和Bar Chart點擊, 顯示選取內容中包含的路段的平均速度
     else:
         linechart = px.line(pivoted_df, x=pivoted_df.index, y=["BIG", "CAR", "MOTOR"],
                         labels=dict(x="Date", y="Average Speed"),
@@ -1227,7 +1191,9 @@ def draw_LineChart(selectedData, clickData, clickData2, selectedData2):
 
 #---------------------------------------------Text callback function---------------------------------------------
 def get_text_fig(data, title):
-    fig = go.Figure()
+    # fig = go.Figure()
+    # 除了go.Figure()畫文字框，也可以用px做
+    fig = px.scatter()
     fig.add_annotation(
         text=data,
         showarrow=False,
@@ -1253,7 +1219,7 @@ def get_text_fig(data, title):
             Input('Pie Chart', 'clickData'),
             Input('Bar Chart', 'clickData'),
             Input('Line Chart', 'selectedData'))
-def draw_Text2(selectedData, clickData, clickData2, selectedData2):
+def draw_Text(selectedData, clickData, clickData2, selectedData2):
     df_subset = df.copy()
     if clickData2 is not None: # Bar Chart
         label = clickData2['points'][0]['label']

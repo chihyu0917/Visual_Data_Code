@@ -24,3 +24,8 @@
 	https://dashboard-0xmj.onrender.com/
 2. 嘗試用git lfs上傳size大於25MB的IntegrateData.csv，成功上傳到Github上
 3. 因為render.com免費版只有512MB, .1CPU，故無法運行整個IntegrateData.csv，因此改用前5萬筆資料可以成功deploy
+
+0530更正之處:
+1. Text改為用px.scatter()繪製，這樣不用再引入新的模組
+2. 由於電腦作業系統不同，分割了Win和Mac讀取CSV的代碼，註解删除後可使用
+
