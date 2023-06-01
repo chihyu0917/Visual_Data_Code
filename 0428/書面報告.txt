@@ -10,6 +10,7 @@
 	若使用者需要購置新房屋，也可以利用儀表板所呈現的數據，利用車流量預估新住宅的道路噪音狀況或交通便利性，找到更心宜的住所。若使用者需要編排旅遊行程，可以依據車流量選定旅行月份和預估車程往返的時間。若目的地路線的車流量較多，就可以預留更長的時間，也可以選擇流量較少的路線作為第一選擇，以便他們規劃旅行路線及景點數目。
 	製作儀表板的初衷是為了可以讓目標受眾能使用更便利的工具來協助他們解決上述問題。雖然交通部獲得交通數據是非常容易的事，但在沒有任何工具的協助的情況下，一般使用者其實很難憑自己的能力去做相關的分析，想做好旅遊的規劃也只能逐一在網上查找各種各樣的資料，而且進行交通數據分析也需要擁有一定程度的知識。或者說選擇住所，噪音狀況或交通便利性除了網上搜尋資料外，就只能依靠自己實地勘察，這樣花費的時間成本就更長，但儀表板是一個整合各種數據的工具，因此可以幫助目標受眾更快得到預期的結果。
 （五） 相關文獻/既有系統探討
+	交通數據處理已經應用於相當多案例中，並且以不同的互動形式讓使用者可以探索和比較結果。例如：視覺化地查詢計程車路線，除了支持標準分析，也支持使用者查詢起點與目的地。[1] 交通數據處理主要是分析不同時間與空間下的交通狀況，並描述數值與類型屬性的方法，最重要的是數據可視化可以有效地顯示數據中隱藏的資訊[2]，因此視覺化分析方法也影響著儀表板的呈現情形。[3]
 （六） 開發工具與軟/硬體需求
 	本次專題使用python和它的一些外部的模組來實作儀表板：
 		Ploty、shapely—繪製圖表
@@ -58,3 +59,9 @@
 		2. 新增Bar Chart（長條圖）圈選互動、更換Mapbox（地圖）的預設地圖、更換Heat Map（熱力圖）為同顏色漸變、更新dashboard排版
 		3. 部署dashboard到網頁
 （十一） 後續研究/實作方向
+	目前儀表板的互動介面已全數完成，包含各圖表間的交集互動，也提升效率、改善錯誤與美化界面。另外，我們的儀表板已經部署到網站上，然而我們所使用的工具是plotly官方推薦的網站render，免費的方案有資料大小與速度限制，由於後臺數據相當龐大，因此只能呈現部分數據且造成互動速度變慢。
+	未來我們可能會改善部署網站的問題，運用Synology NAS或是其他工具來解決現有的大小與速度困境，並且致力於將完整的儀表板部署到網站上提供線上使用者使用。我們也會根據使用者給我們的回饋，持續改善儀表板可能潛在的問題。
+（十二） 參考文獻
+	[1] N. Ferreira, J. Poco, H. T. Vo, J. Freire, and C. T. Silva. Visual exploration of big spatio-temporal urban data: A study of new york city taxi trips. IEEE Transactions on Visualization and Computer Graphics, 19(12):2149–2158, 2013. 
+	[2] W. Chen, F. Guo, and F.-Y. Wang. A survey of traffic data visualization. IEEE Transactions on Intelligent Transportation Systems, 16(6):2970–2984, 2015.
+	[3] N. Andrienko and G. Andrienko. A visual analytics framework for spatiotemporal analysis and modelling. Data Mining and Knowledge Discovery, pp. 1–29, 2013.
